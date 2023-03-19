@@ -103,7 +103,7 @@ router.get("/user-find/:id", async (req, res) => {
 // GET ALL Payment
 router.get("/get-all", verifyToken, async (req, res) => {
   try {
-    const payment = await Payment.find();
+    const payment = await Payment.find().sort({ status: "asc" });
     return res.status(200).json({
       success: true,
       message: "Get all Payment",
@@ -111,6 +111,39 @@ router.get("/get-all", verifyToken, async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ mess: "loi tim get all Payment" });
+  }
+});
+
+// GET FILTER PRODUCT
+router.post("/filter", verifyToken, async (req, res) => {
+  const { nameFilter, status } = req.body;
+  try {
+    let filter = {};
+
+    if ((status === 1 || status === 0 || status === 2) && nameFilter.trim()) {
+      filter = {
+        name: new RegExp(nameFilter, "i"),
+        status: Number(status),
+      };
+    } else if (status === 1 || status === 0 || status === 2) {
+      filter = {
+        status: Number(status),
+      };
+    } else if (nameFilter.trim()) {
+      filter = {
+        name: new RegExp(nameFilter, "i"),
+      };
+    }
+
+    const payment = await Payment.find(filter).exec();
+
+    return res.status(200).json({
+      success: true,
+      message: "Get filter payment",
+      data: payment,
+    });
+  } catch (error) {
+    res.status(500).json({ mess: "loi tim kiem payment" });
   }
 });
 

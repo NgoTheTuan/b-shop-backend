@@ -2,20 +2,10 @@ const mongoose = require("mongoose");
 
 const SystemSchema = new mongoose.Schema(
   {
-    // Giới thiệu về shop
-    section_1: {
+    cover_image: {
       type: String,
     },
-    // về chúng tôi
-    section_2: {
-      type: String,
-    },
-    // Liên hệ
-    section_3: {
-      type: String,
-    },
-    // Thông tin shop
-    section_4: {
+    section: {
       type: String,
     },
   },

@@ -96,11 +96,26 @@ router.get("/get-all", verifyToken, async (req, res) => {
 
 // GET FILTER News
 router.post("/filter", verifyToken, async (req, res) => {
-  const { titleFilter } = req.body;
+  const { titleFilter, status } = req.body;
   try {
-    const news = await News.find({
-      title: new RegExp(titleFilter, "i"),
-    }).exec();
+    let filter = {};
+
+    if ((status === 1 || status === 0) && titleFilter.trim()) {
+      filter = {
+        title: new RegExp(titleFilter, "i"),
+        status: Number(status),
+      };
+    } else if (status === 1 || status === 0) {
+      filter = {
+        status: Number(status),
+      };
+    } else if (titleFilter.trim()) {
+      filter = {
+        title: new RegExp(titleFilter, "i"),
+      };
+    }
+
+    const news = await News.find(filter).exec();
     return res.status(200).json({
       success: true,
       message: "Get filter News",

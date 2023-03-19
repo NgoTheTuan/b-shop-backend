@@ -44,7 +44,7 @@ const PaymentSchema = new mongoose.Schema(
     },
     status: {
       type: Number,
-      default: 1,
+      default: 0,
       required: true,
     },
   },
