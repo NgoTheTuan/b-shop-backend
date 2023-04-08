@@ -16,6 +16,7 @@ const uploadRoutes = require("./routes/uploads");
 const systemRoutes = require("./routes/system");
 const newsRoutes = require("./routes/news");
 const paymentRoutes = require("./routes/payment");
+const contactRoutes = require("./routes/contact");
 
 // const videoRoutes = require("./routes/video");
 
@@ -55,6 +56,7 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/system", systemRoutes);
 app.use("/api/news", newsRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/contact", contactRoutes);
 
 app.listen(4000, () => {
   console.log("Back end server is ready 4000!");

@@ -65,7 +65,7 @@ router.delete("/:id", verifyToken, async (req, res) => {
 });
 
 // GET A News
-router.get("/find/:id", verifyToken, async (req, res) => {
+router.get("/find/:id", async (req, res) => {
   try {
     const news = await News.findById(req.params.id);
     if (news) {
@@ -81,9 +81,20 @@ router.get("/find/:id", verifyToken, async (req, res) => {
 });
 
 // GET ALL News
-router.get("/get-all", verifyToken, async (req, res) => {
+router.get("/get-all", async (req, res) => {
+  const { limit } = req.query;
   try {
-    const news = await News.find();
+    let news;
+    if (limit) {
+      news = await News.find()
+        .sort({
+          createdAt: "desc",
+        })
+        .limit(4);
+    } else {
+      news = await News.find();
+    }
+
     return res.status(200).json({
       success: true,
       message: "Get all News",

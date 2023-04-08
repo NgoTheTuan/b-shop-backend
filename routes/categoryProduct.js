@@ -36,7 +36,7 @@ router.post("/", verifyToken, async (req, res) => {
 });
 
 // GET A CATEGORIES
-router.get("/find/:id", verifyToken, async (req, res) => {
+router.get("/find/:id", async (req, res) => {
   try {
     const category = await CategoryProduct.findById(req.params.id);
     if (category) {
@@ -128,7 +128,7 @@ router.get("/get-all", async (req, res) => {
 });
 
 // GET FILTER
-router.post("/filter", verifyToken, async (req, res) => {
+router.post("/filter", async (req, res) => {
   const { titleFilter, status } = req.body;
   try {
     let filter = {};

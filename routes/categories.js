@@ -65,7 +65,7 @@ router.delete("/:id", verifyToken, async (req, res) => {
 });
 
 // GET A CATEGORIES
-router.get("/find/:id", verifyToken, async (req, res) => {
+router.get("/find/:id", async (req, res) => {
   try {
     const categories = await Categories.findById(req.params.id);
     if (categories) {
@@ -95,7 +95,7 @@ router.get("/get-all", async (req, res) => {
 });
 
 // GET FILTER
-router.post("/filter", verifyToken, async (req, res) => {
+router.post("/filter", async (req, res) => {
   const { titleFilter, status } = req.body;
   try {
     let filter = {};

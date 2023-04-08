@@ -6,9 +6,9 @@ const ProductSchema = new mongoose.Schema(
       type: String,
       require: true,
     },
-    description:{
-        type: String,
-        required: true,
+    description: {
+      type: String,
+      required: true,
     },
     price: {
       type: Number,
@@ -26,11 +26,19 @@ const ProductSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    categoriesId: {
+      type: String,
+      required: true,
+    },
+    quantitySold: {
+      type: Number,
+      default: 0,
+    },
     status: {
       type: Number,
       default: 1,
       required: true,
-  }
+    },
   },
   { timestamps: true }
 );

@@ -1,12 +1,19 @@
 const router = require("express").Router();
 const Product = require("../models/Product");
+const CategoryProduct = require("../models/CategoryProduct");
 
 const verifyToken = require("../middleware/verifyToken");
 
 //CREATE
 router.post("/", verifyToken, async (req, res) => {
   try {
-    const newProduct = new Product(req.body);
+    const categoryId = req.body.categoryId;
+
+    const category = await CategoryProduct.findById(categoryId);
+    const newProduct = new Product({
+      ...req.body,
+      categoriesId: category.categoriesId,
+    });
     const savedProduct = await newProduct.save();
 
     return res.status(200).json({
@@ -26,8 +33,15 @@ router.put("/", verifyToken, async (req, res) => {
   try {
     const product = await Product.findById(req.body.productId);
     if (req.body.productId === String(product._id)) {
+      const categoryId = req.body.categoryId;
+
+      const category = await CategoryProduct.findById(categoryId);
+
       await Product.findByIdAndUpdate(req.body.productId, {
-        $set: req.body,
+        $set: {
+          ...req.body,
+          categoriesId: category.categoriesId,
+        },
       });
 
       const productUpdate = await Product.findById(req.body.productId);
@@ -65,7 +79,7 @@ router.delete("/:id", verifyToken, async (req, res) => {
 });
 
 // GET A PRODUCT
-router.get("/find/:id", verifyToken, async (req, res) => {
+router.get("/find/:id", async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (product) {
@@ -94,8 +108,86 @@ router.get("/get-all", verifyToken, async (req, res) => {
   }
 });
 
+// GET ALL PRODUCT FOR if else
+router.post("/get-selling", async (req, res) => {
+  const {
+    selling,
+    createdAt,
+    price,
+    discount,
+    name,
+    sort,
+    limit,
+    categoriesId,
+    categoryId,
+  } = req.body;
+
+  try {
+    let sortProduct = {};
+    if (selling) {
+      sortProduct = {
+        ...sortProduct,
+        quantitySold: sort || "asc",
+      };
+    }
+    if (createdAt) {
+      sortProduct = {
+        ...sortProduct,
+        createdAt: sort || "asc",
+      };
+    }
+    if (price) {
+      sortProduct = {
+        ...sortProduct,
+        price: sort || "asc",
+      };
+    }
+    if (discount) {
+      sortProduct = {
+        ...sortProduct,
+        discount: sort || "asc",
+      };
+    }
+    if (name) {
+      sortProduct = {
+        ...sortProduct,
+        name: sort || "asc",
+      };
+    }
+
+    let params = {};
+    if (categoriesId) {
+      params = {
+        categoriesId: categoriesId,
+      };
+    } else if (categoryId) {
+      params = {
+        categoryId: categoryId,
+      };
+    }
+
+    let product;
+    if (limit) {
+      product = await Product.find(params)
+        .sort(sortProduct)
+        .limit(limit)
+        .exec();
+    } else {
+      product = await Product.find(params).sort(sortProduct).exec();
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Get all product selling",
+      data: product,
+    });
+  } catch (error) {
+    res.status(500).json({ mess: "loi tim get all product" });
+  }
+});
+
 // GET FILTER PRODUCT
-router.post("/filter", verifyToken, async (req, res) => {
+router.post("/filter", async (req, res) => {
   const { nameFilter, status } = req.body;
   try {
     let filter = {};

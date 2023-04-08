@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const Payment = require("../models/Payment");
+const Product = require("../models/Product");
 
 const verifyToken = require("../middleware/verifyToken");
 
@@ -8,6 +9,17 @@ router.post("/", async (req, res) => {
   try {
     const newPayment = new Payment(req.body);
     const savedPayment = await newPayment.save();
+    if (savedPayment) {
+      if (req.body.products.length > 0) {
+        req.body.products.forEach(async (product) => {
+          await Product.findByIdAndUpdate(product?.product_id, {
+            $inc: {
+              quantitySold: product?.product_total,
+            },
+          });
+        });
+      }
+    }
 
     return res.status(200).json({
       success: true,
