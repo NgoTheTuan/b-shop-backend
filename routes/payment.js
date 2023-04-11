@@ -9,17 +9,6 @@ router.post("/", async (req, res) => {
   try {
     const newPayment = new Payment(req.body);
     const savedPayment = await newPayment.save();
-    if (savedPayment) {
-      if (req.body.products.length > 0) {
-        req.body.products.forEach(async (product) => {
-          await Product.findByIdAndUpdate(product?.product_id, {
-            $inc: {
-              quantitySold: product?.product_total,
-            },
-          });
-        });
-      }
-    }
 
     return res.status(200).json({
       success: true,
@@ -44,6 +33,18 @@ router.put("/", verifyToken, async (req, res) => {
       });
 
       const paymentUpdate = await Payment.findById(req.body.paymentId);
+
+      if (req.body.status === 1) {
+        if (paymentUpdate.products.length > 0) {
+          paymentUpdate?.products?.forEach(async (product) => {
+            await Product.findByIdAndUpdate(product?.product_id, {
+              $inc: {
+                quantitySold: product?.product_total,
+              },
+            });
+          });
+        }
+      }
 
       return res.status(200).json({
         success: true,
@@ -97,7 +98,6 @@ router.get("/find/:id", async (req, res) => {
 router.get("/user-find/:id", async (req, res) => {
   try {
     const payment = await Payment.find({ user_id: req.params.id }).sort({
-      status: "asc",
       createdAt: "desc",
     });
     if (payment) {
@@ -156,6 +156,114 @@ router.post("/filter", verifyToken, async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ mess: "loi tim kiem payment" });
+  }
+});
+
+// sales statistics
+router.get("/sales-statistics", verifyToken, async (req, res) => {
+  try {
+    const payment = await Payment.find({ status: 1 });
+
+    let totalMoney = 0;
+    let totalProduct = 0;
+    let totalUser = 0;
+    const month = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    let totalMonth = [];
+    let totalStatus = {
+      pending: 0,
+      paid: 0,
+      failed: 0,
+    };
+    if (payment.length > 0) {
+      payment.forEach((item) => {
+        totalMoney += item.total_money;
+        if (item?.products.length > 0) {
+          item?.products.forEach((itemProduct) => {
+            totalProduct += itemProduct?.product_total;
+          });
+        }
+      });
+
+      const uniqueUserIds = new Set(payment.map((obj) => obj?.user_id));
+      totalUser = uniqueUserIds.size;
+
+      month.forEach((item, index) => {
+        let total = 0;
+        payment.forEach((itemPayment) => {
+          const dateTimeString = itemPayment?.createdAt;
+          const dateObj = new Date(dateTimeString);
+          const year = dateObj.getFullYear();
+          const month = dateObj.getMonth() + 1;
+
+          let dateTimeNow = new Date();
+          let yearNow = dateTimeNow.getFullYear();
+          if (yearNow === year && month === item) {
+            total = total + Number(itemPayment?.total_money);
+          }
+        });
+        totalMonth[index] = total;
+      });
+
+      payment.forEach((itemPayment) => {
+        if (itemPayment?.status === 0) {
+          totalStatus.paid = totalStatus.pending + 1;
+        } else if (itemPayment?.status === 1) {
+          totalStatus.paid = totalStatus.paid + 1;
+        } else if (itemPayment?.status === 2) {
+          totalStatus.paid = totalStatus.failed + 1;
+        }
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Get all Payment",
+      data: {
+        data: payment,
+        totalMoney,
+        totalProduct,
+        totalUser,
+        totalMonth,
+        totalStatus,
+        totalOrder: payment.length || 0,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ mess: "loi tim get all Payment" });
+  }
+});
+
+router.get("/sales-statistics-status", verifyToken, async (req, res) => {
+  try {
+    const payment = await Payment.find();
+    let totalStatus = {
+      pending: 0,
+      paid: 0,
+      failed: 0,
+    };
+    if (payment.length > 0) {
+      payment.forEach((itemPayment) => {
+        console.log(totalStatus);
+        if (Number(itemPayment?.status) === 0) {
+          totalStatus.pending = totalStatus.pending + 1;
+        } else if (Number(itemPayment?.status) === 1) {
+          totalStatus.paid = totalStatus.paid + 1;
+        } else if (Number(itemPayment?.status) === 2) {
+          totalStatus.failed = totalStatus.failed + 1;
+        }
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Get all Payment",
+      data: {
+        totalStatus,
+        totalOrder: payment.length || 0,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ mess: "loi tim get all Payment" });
   }
 });
 
