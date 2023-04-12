@@ -126,6 +126,20 @@ router.get("/get-all", verifyToken, async (req, res) => {
   }
 });
 
+// GET Payment latest
+router.get("/get-latest", verifyToken, async (req, res) => {
+  try {
+    const payment = await Payment.find().sort({ createdAt: "desc" }).limit(4);
+    return res.status(200).json({
+      success: true,
+      message: "Get all Payment",
+      data: payment,
+    });
+  } catch (error) {
+    res.status(500).json({ mess: "loi tim get all Payment" });
+  }
+});
+
 // GET FILTER PRODUCT
 router.post("/filter", verifyToken, async (req, res) => {
   const { nameFilter, status } = req.body;
@@ -169,6 +183,21 @@ router.get("/sales-statistics", verifyToken, async (req, res) => {
     let totalUser = 0;
     const month = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     let totalMonth = [];
+
+    let currentDate = new Date();
+
+    let day = [];
+    for (let i = 0; i < 10; i++) {
+      let date = new Date(currentDate);
+      date.setDate(currentDate.getDate() - i);
+      let dateObj = {
+        day: date.getDate(),
+        month: date.getMonth() + 1,
+        year: date.getFullYear(),
+      };
+      day.push(dateObj);
+    }
+    let totalDay = [];
     let totalStatus = {
       pending: 0,
       paid: 0,
@@ -213,6 +242,29 @@ router.get("/sales-statistics", verifyToken, async (req, res) => {
           totalStatus.paid = totalStatus.failed + 1;
         }
       });
+
+      day.forEach((item, index) => {
+        let total = 0;
+        payment.forEach((itemPayment) => {
+          const dateTimeString = itemPayment?.createdAt;
+          const dateObj = new Date(dateTimeString);
+          const day = dateObj.getDate();
+          const month = dateObj.getMonth() + 1;
+          const year = dateObj.getFullYear();
+          if (
+            Number(day) === Number(item?.day) &&
+            Number(month) === Number(item?.month) &&
+            Number(year) === Number(item?.year)
+          ) {
+            total = total + Number(itemPayment?.total_money);
+          }
+        });
+
+        totalDay[index] = {
+          total,
+          date: item?.day + "/" + item?.month,
+        };
+      });
     }
 
     return res.status(200).json({
@@ -225,6 +277,7 @@ router.get("/sales-statistics", verifyToken, async (req, res) => {
         totalUser,
         totalMonth,
         totalStatus,
+        totalDay: totalDay.reverse(),
         totalOrder: payment.length || 0,
       },
     });

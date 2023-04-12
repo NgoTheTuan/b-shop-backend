@@ -38,6 +38,10 @@ const PaymentSchema = new mongoose.Schema(
       default: "offline",
     },
     products: [ProductPaymentSchema],
+    total_ship: {
+      type: Number,
+      default: 0,
+    },
     total_money: {
       type: Number,
       default: 0,
