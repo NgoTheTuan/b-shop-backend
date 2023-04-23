@@ -83,7 +83,7 @@ router.get("/find/:id", async (req, res) => {
 // GET ALL
 router.get("/get-all", async (req, res) => {
   try {
-    const categories = await Categories.find();
+    const categories = await Categories.find().sort({ createdAt: "desc" });
     return res.status(200).json({
       success: true,
       message: "Get all Categories",

@@ -48,6 +48,7 @@ router.post("/", async (req, res) => {
       avatar: req.body.avatar,
       address: req.body.address,
       phone: req.body.phone,
+      isAdmin: req.body.isAdmin,
     });
 
     const user = await newUser.save();
@@ -100,7 +101,7 @@ router.get("/find/:id", verifyToken, async (req, res) => {
 // GET ALL USER
 router.get("/get-all", verifyToken, async (req, res) => {
   try {
-    const user = await User.find();
+    const user = await User.find().sort({ createdAt: "desc" });
     return res.status(200).json({
       success: true,
       message: "Get all user",

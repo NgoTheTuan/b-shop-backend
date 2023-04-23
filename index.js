@@ -17,8 +17,8 @@ const systemRoutes = require("./routes/system");
 const newsRoutes = require("./routes/news");
 const paymentRoutes = require("./routes/payment");
 const contactRoutes = require("./routes/contact");
-
-// const videoRoutes = require("./routes/video");
+const supplierRoutes = require("./routes/supplier");
+const warehouseRoutes = require("./routes/wareHouse");
 
 dotenv.config();
 
@@ -57,6 +57,8 @@ app.use("/api/system", systemRoutes);
 app.use("/api/news", newsRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/supplier", supplierRoutes);
+app.use("/api/warehouse", warehouseRoutes);
 
 app.listen(4000, () => {
   console.log("Back end server is ready 4000!");

@@ -13,6 +13,10 @@ const ContactProductSchema = new mongoose.Schema(
     note: {
       type: String,
     },
+    status: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

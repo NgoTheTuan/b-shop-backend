@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const Product = require("../models/Product");
 const CategoryProduct = require("../models/CategoryProduct");
+const Supplier = require("../models/Supplier");
 
 const verifyToken = require("../middleware/verifyToken");
 
@@ -82,11 +83,20 @@ router.delete("/:id", verifyToken, async (req, res) => {
 router.get("/find/:id", async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
+
+    let supplier;
+    if (product) {
+      supplier = await Supplier.findById(product?.supplierId);
+    }
+
     if (product) {
       return res.status(200).json({
         success: true,
         message: "Get a product in success",
-        data: product,
+        data: {
+          ...product?._doc,
+          supplier: supplier,
+        },
       });
     }
   } catch (error) {
@@ -97,7 +107,7 @@ router.get("/find/:id", async (req, res) => {
 // GET ALL PRODUCT
 router.get("/get-all", verifyToken, async (req, res) => {
   try {
-    const product = await Product.find();
+    const product = await Product.find().sort({ createdAt: "desc" });
     return res.status(200).json({
       success: true,
       message: "Get all product",

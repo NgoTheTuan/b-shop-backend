@@ -6,6 +6,7 @@ const ProductPaymentSchema = new mongoose.Schema({
   product_title: String,
   product_price: Number,
   product_total: Number,
+  product_wareHouseId: String,
 });
 
 const PaymentSchema = new mongoose.Schema(

@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const Payment = require("../models/Payment");
 const Product = require("../models/Product");
+const WareHouse = require("../models/WareHouse");
 
 const verifyToken = require("../middleware/verifyToken");
 
@@ -40,6 +41,13 @@ router.put("/", verifyToken, async (req, res) => {
             await Product.findByIdAndUpdate(product?.product_id, {
               $inc: {
                 quantitySold: product?.product_total,
+                quantity: -product?.product_total,
+              },
+            });
+
+            await WareHouse.findByIdAndUpdate(product?.product_wareHouseId, {
+              $inc: {
+                quantity: -product?.product_total,
               },
             });
           });
@@ -129,7 +137,9 @@ router.get("/get-all", verifyToken, async (req, res) => {
 // GET Payment latest
 router.get("/get-latest", verifyToken, async (req, res) => {
   try {
-    const payment = await Payment.find().sort({ createdAt: "desc" }).limit(4);
+    const payment = await Payment.find({ status: 1 })
+      .sort({ createdAt: "desc" })
+      .limit(4);
     return res.status(200).json({
       success: true,
       message: "Get all Payment",
@@ -219,7 +229,7 @@ router.get("/sales-statistics", verifyToken, async (req, res) => {
       month.forEach((item, index) => {
         let total = 0;
         payment.forEach((itemPayment) => {
-          const dateTimeString = itemPayment?.createdAt;
+          const dateTimeString = itemPayment?.updatedAt;
           const dateObj = new Date(dateTimeString);
           const year = dateObj.getFullYear();
           const month = dateObj.getMonth() + 1;
@@ -246,7 +256,7 @@ router.get("/sales-statistics", verifyToken, async (req, res) => {
       day.forEach((item, index) => {
         let total = 0;
         payment.forEach((itemPayment) => {
-          const dateTimeString = itemPayment?.createdAt;
+          const dateTimeString = itemPayment?.updatedAt;
           const dateObj = new Date(dateTimeString);
           const day = dateObj.getDate();
           const month = dateObj.getMonth() + 1;
@@ -296,7 +306,6 @@ router.get("/sales-statistics-status", verifyToken, async (req, res) => {
     };
     if (payment.length > 0) {
       payment.forEach((itemPayment) => {
-        console.log(totalStatus);
         if (Number(itemPayment?.status) === 0) {
           totalStatus.pending = totalStatus.pending + 1;
         } else if (Number(itemPayment?.status) === 1) {

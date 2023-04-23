@@ -116,7 +116,9 @@ router.delete("/:id", verifyToken, async (req, res) => {
 // GET ALL
 router.get("/get-all", async (req, res) => {
   try {
-    const categoryProduct = await CategoryProduct.find();
+    const categoryProduct = await CategoryProduct.find().sort({
+      createdAt: "desc",
+    });
     return res.status(200).json({
       success: true,
       message: "Get all Category Product",
