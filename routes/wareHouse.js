@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const WareHouse = require("../models/WareHouse");
+const Product = require("../models/Product");
 
 const verifyToken = require("../middleware/verifyToken");
 
@@ -160,6 +161,99 @@ router.post("/quantity", async (req, res) => {
         message: "Change quantity success",
         data: wareHouse,
       });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "WareHouse change error" });
+  }
+});
+
+// GET A SUPPLIER CHANGE storageCapacity
+router.post("/quantity-edit", async (req, res) => {
+  const { productId, wareHouseId, quantityNews, quantity } = req.body;
+
+  try {
+    const getWareHouse = await WareHouse.findById(wareHouseId);
+    const getProduct = await Product.findById(productId);
+
+    if (getWareHouse?._id && getProduct?._id) {
+      if (getProduct?.wareHouseId === wareHouseId) {
+        if (
+          quantityNews - quantity + getWareHouse?.quantity >
+          getWareHouse?.storageCapacity
+        ) {
+          return res.status(200).json({
+            success: false,
+            message: `Số lượng sản phẩm nhập vào vượt quá giới hạn chứa của kho, kho còn trống ${
+              getWareHouse?.storageCapacity -
+              (getWareHouse?.quantity - quantity)
+            }`,
+            data: {
+              storageCapacity: getWareHouse?.storageCapacity,
+              quantity: getWareHouse?.quantity,
+            },
+          });
+        } else {
+          const wareHouse = await WareHouse.findByIdAndUpdate(wareHouseId, {
+            $inc: {
+              quantity: quantityNews - quantity,
+            },
+          });
+          const product = await Product.findByIdAndUpdate(productId, {
+            $set: {
+              quantity: quantityNews,
+            },
+          });
+          if (wareHouse) {
+            return res.status(200).json({
+              success: true,
+              message: "Change quantity success",
+              data: { wareHouse, product },
+            });
+          }
+        }
+      } else {
+        if (
+          quantityNews + getWareHouse?.quantity >
+          getWareHouse?.storageCapacity
+        ) {
+          return res.status(200).json({
+            success: false,
+            message: `Số lượng sản phẩm nhập vào vượt quá giới hạn chứa của kho, kho còn trống ${
+              getWareHouse?.storageCapacity - getWareHouse?.quantity
+            }`,
+            data: {
+              storageCapacity: getWareHouse?.storageCapacity,
+              quantity: getWareHouse?.quantity,
+              total: getWareHouse?.storageCapacity - getWareHouse?.quantity,
+            },
+          });
+        } else {
+          const wareHouse = await WareHouse.findByIdAndUpdate(
+            getProduct?.wareHouseId,
+            {
+              $inc: {
+                quantity: -quantity,
+              },
+            }
+          );
+          const wareHouseNews = await WareHouse.findByIdAndUpdate(wareHouseId, {
+            $inc: {
+              quantity: quantityNews,
+            },
+          });
+          const product = await Product.findByIdAndUpdate(productId, {
+            $set: {
+              quantity: quantityNews,
+            },
+          });
+
+          return res.status(200).json({
+            success: true,
+            message: "Change quantity success",
+            data: { wareHouse, product, wareHouseNews },
+          });
+        }
+      }
     }
   } catch (error) {
     res.status(500).json({ message: "WareHouse change error" });
