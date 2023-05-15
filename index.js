@@ -19,6 +19,7 @@ const paymentRoutes = require("./routes/payment");
 const contactRoutes = require("./routes/contact");
 const supplierRoutes = require("./routes/supplier");
 const warehouseRoutes = require("./routes/wareHouse");
+const productReviewRoutes = require("./routes/productReview");
 
 dotenv.config();
 
@@ -59,6 +60,7 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/supplier", supplierRoutes);
 app.use("/api/warehouse", warehouseRoutes);
+app.use("/api/productReview", productReviewRoutes);
 
 app.listen(4000, () => {
   console.log("Back end server is ready 4000!");
